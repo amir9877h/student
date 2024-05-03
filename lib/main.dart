@@ -32,20 +32,38 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: HomeScreen(),
+      home: const HomeScreen(),
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student'),
+        title: const Text('Student'),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+          onPressed: () async {
+            final result = await Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => _AddStudentForm()));
+            if (result != null) setState(() {});
+          },
+          label: const Row(
+            children: [
+              Icon(Icons.add),
+              Text('Add Student'),
+            ],
+          )),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: FutureBuilder<List<StudentData>>(
         future: getStudents(),
         builder: (context, snapshot) {
@@ -70,7 +88,7 @@ class HomeScreen extends StatelessWidget {
 class _Student extends StatelessWidget {
   final StudentData data;
 
-  const _Student({super.key, required this.data});
+  const _Student({required this.data});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -110,7 +128,7 @@ class _Student extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(data.firstName + ' ' + data.lastName),
+                Text('${data.firstName} ${data.lastName}'),
                 const SizedBox(
                   height: 8,
                 ),
@@ -141,6 +159,83 @@ class _Student extends StatelessWidget {
             ],
           )
         ],
+      ),
+    );
+  }
+}
+
+class _AddStudentForm extends StatelessWidget {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _courseController = TextEditingController();
+  final TextEditingController _scoreController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add New Student'),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+          onPressed: () async {
+            try {
+              final newStudentData = await saveStudent(
+                  _firstNameController.text,
+                  _lastNameController.text,
+                  _courseController.text,
+                  int.parse(_scoreController.text));
+              Navigator.pop(context, newStudentData);
+            } catch (e) {
+              debugPrint(e.toString());
+            }
+          },
+          label: const Row(
+            children: [
+              Icon(Icons.check),
+              Text('Save'),
+            ],
+          )),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _firstNameController,
+              decoration: const InputDecoration(
+                label: Text('First Name'),
+              ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: _lastNameController,
+              decoration: const InputDecoration(
+                label: Text('Last Name'),
+              ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: _courseController,
+              decoration: const InputDecoration(
+                label: Text('Course'),
+              ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: _scoreController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                label: Text('Score'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
